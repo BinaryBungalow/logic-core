@@ -1,0 +1,18 @@
+dependencies {
+    implementation(platform(project(":binbun-bom")))
+    api(project(":binbun-agent-core"))
+    api(project(":binbun-memory"))
+    api(project(":binbun-resources"))
+    api(project(":binbun-tools"))
+    api(project(":binbun-workflows"))
+    api(project(":binbun-model"))
+    api(project(":binbun-acp"))
+    api(project(":binbun-delivery-core"))
+    api(project(":binbun-plugin-manifest"))
+    api(project(":binbun-plugin-registry"))
+    api(project(":binbun-plugin-runtime"))
+    api(project(":binbun-acp-auth"))
+    api(project(":binbun-gateway-health"))
+    api(project(":binbun-gateway-recovery"))
+    implementation("com.fasterxml.jackson.core:jackson-databind")
+}

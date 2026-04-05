@@ -1,0 +1,13 @@
+{
+  "name": "discovered-plugin",
+  "version": "0.1.0",
+  "entrypoint": "ai.binbun.coreplugin.CorePluginBootstrap",
+  "dependencies": [],
+  "optionalDependencies": [],
+  "tools": ["browser.navigate"],
+  "workflows": [],
+  "permissions": ["BROWSER"],
+  "requiredEnv": [],
+  "migrations": [],
+  "compatibility": "phase-2-starter"
+}
