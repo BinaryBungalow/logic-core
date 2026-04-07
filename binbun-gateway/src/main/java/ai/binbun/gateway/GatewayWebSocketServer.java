@@ -19,6 +19,7 @@ public final class GatewayWebSocketServer implements AutoCloseable {
     private final SubscriptionRegistry subscriptionRegistry;
     private final GatewayEventBus eventBus;
     private final SessionRegistry sessionRegistry;
+    private final GatewayRateLimiter rateLimiter = new GatewayRateLimiter();
     private final int port;
     private final java.net.ServerSocket serverSocket;
     private final java.util.concurrent.atomic.AtomicBoolean running = new java.util.concurrent.atomic.AtomicBoolean(false);
@@ -47,10 +48,12 @@ public final class GatewayWebSocketServer implements AutoCloseable {
         acceptThread = Thread.ofVirtual().name("gateway-ws-accept").start(() -> {
             while (running.get()) {
                 try {
-                    Socket socket = serverSocket.accept();
-                    GatewayConnection conn = new GatewayConnection();
-                    connections.put(conn.id(), conn);
-                    Thread.ofVirtual().name("gateway-ws-" + conn.id()).start(() -> handleConnection(socket, conn));
+                Socket socket = serverSocket.accept();
+                GatewayConnection conn = new GatewayConnection();
+                connections.put(conn.id(), conn);
+                GatewayMetrics.getInstance().connectionsTotal.incrementAndGet();
+                GatewayMetrics.getInstance().connectionsActive.incrementAndGet();
+                Thread.ofVirtual().name("gateway-ws-" + conn.id()).start(() -> handleConnection(socket, conn));
                 } catch (IOException e) {
                     if (running.get()) {
                         System.err.println("Gateway WS accept error: " + e.getMessage());
@@ -74,6 +77,7 @@ public final class GatewayWebSocketServer implements AutoCloseable {
                     continue;
                 }
                 String type = (String) frame.get("type");
+                GatewayMetrics.getInstance().messagesInbound.incrementAndGet();
                 if ("req".equals(type)) {
                     handleRequest(frame, conn, writer);
                 } else if ("sub".equals(type)) {
@@ -90,6 +94,7 @@ public final class GatewayWebSocketServer implements AutoCloseable {
             subscriptionRegistry.unsubscribeAll(conn);
             connections.remove(conn.id());
             conn.disconnect();
+            GatewayMetrics.getInstance().connectionsActive.decrementAndGet();
         }
     }
 
@@ -106,6 +111,14 @@ public final class GatewayWebSocketServer implements AutoCloseable {
         }
 
         GatewayMethod gwMethod = methodOpt.get();
+
+        // Rate limiting
+        GatewayMetrics.getInstance().requestsTotal.incrementAndGet();
+        if (!rateLimiter.tryAcquire(conn.id())) {
+            GatewayMetrics.getInstance().requestsRateLimited.incrementAndGet();
+            writeResponse(writer, id, false, Map.of("error", "rate_limit_exceeded", "limit", 120, "window", "60s"));
+            return;
+        }
 
         // Scope enforcement
         if (conn.isAuthenticated()) {
@@ -124,6 +137,7 @@ public final class GatewayWebSocketServer implements AutoCloseable {
             Map<String, Object> result = gwMethod.handler().handle(params, conn);
             writeResponse(writer, id, true, result);
         } catch (Exception e) {
+            GatewayMetrics.getInstance().requestsFailed.incrementAndGet();
             writeResponse(writer, id, false, Map.of("error", "internal_error", "detail", e.getMessage()));
         }
     }
