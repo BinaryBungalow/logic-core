@@ -122,7 +122,7 @@ public final class DefaultAgentSession implements AgentSession {
     @Override
     public BranchHandle branch(String newSessionId) {
         String targetId = (newSessionId == null || newSessionId.isBlank()) ? UUID.randomUUID().toString() : newSessionId;
-        checkpointStore.save(new SessionSnapshot(targetId, messages, System.currentTimeMillis()));
+        checkpointStore.save(new SessionSnapshot(targetId, id, messages, System.currentTimeMillis()));
         return new BranchHandle(targetId);
     }
 

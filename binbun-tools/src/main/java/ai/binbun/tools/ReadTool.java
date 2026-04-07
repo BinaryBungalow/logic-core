@@ -2,20 +2,24 @@ package ai.binbun.tools;
 
 import ai.binbun.model.ToolSpec;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class ReadTool implements Tool {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     public ToolSpec spec() {
-        return ToolSpec.builder()
-                .name("read")
-                .description("Read the contents of a file")
-                .parameter("filePath", "string", "Absolute path to the file to read", true)
-                .build();
+        var schema = MAPPER.createObjectNode();
+        schema.put("type", "object");
+        var properties = schema.putObject("properties");
+        properties.putObject("filePath").put("type", "string");
+        var required = schema.putArray("required");
+        required.add("filePath");
+        return new ToolSpec("read", "Read the contents of a file", schema);
     }
 
     @Override

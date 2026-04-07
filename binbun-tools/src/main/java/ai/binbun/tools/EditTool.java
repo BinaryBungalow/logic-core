@@ -2,22 +2,28 @@ package ai.binbun.tools;
 
 import ai.binbun.model.ToolSpec;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class EditTool implements Tool {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     public ToolSpec spec() {
-        return ToolSpec.builder()
-                .name("edit")
-                .description("Replace exact string match in file with new content")
-                .parameter("filePath", "string", "Absolute path to the file to edit", true)
-                .parameter("oldString", "string", "Exact string to replace", true)
-                .parameter("newString", "string", "Replacement string", true)
-                .build();
+        var schema = MAPPER.createObjectNode();
+        schema.put("type", "object");
+        var properties = schema.putObject("properties");
+        properties.putObject("filePath").put("type", "string");
+        properties.putObject("oldString").put("type", "string");
+        properties.putObject("newString").put("type", "string");
+        var required = schema.putArray("required");
+        required.add("filePath");
+        required.add("oldString");
+        required.add("newString");
+        return new ToolSpec("edit", "Replace exact string match in file with new content", schema);
     }
 
     @Override

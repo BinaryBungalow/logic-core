@@ -2,21 +2,25 @@ package ai.binbun.tools;
 
 import ai.binbun.model.ToolSpec;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 public final class BashTool implements Tool {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     public ToolSpec spec() {
-        return ToolSpec.builder()
-                .name("bash")
-                .description("Execute a shell command and return stdout/stderr")
-                .parameter("command", "string", "Shell command to execute", true)
-                .parameter("timeout", "number", "Timeout in seconds (default 30)", false)
-                .build();
+        var schema = MAPPER.createObjectNode();
+        schema.put("type", "object");
+        var properties = schema.putObject("properties");
+        properties.putObject("command").put("type", "string");
+        properties.putObject("timeout").put("type", "number");
+        var required = schema.putArray("required");
+        required.add("command");
+        return new ToolSpec("bash", "Execute a shell command and return stdout/stderr", schema);
     }
 
     @Override

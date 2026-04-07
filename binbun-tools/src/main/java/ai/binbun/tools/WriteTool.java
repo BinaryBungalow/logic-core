@@ -2,21 +2,26 @@ package ai.binbun.tools;
 
 import ai.binbun.model.ToolSpec;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class WriteTool implements Tool {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     @Override
     public ToolSpec spec() {
-        return ToolSpec.builder()
-                .name("write")
-                .description("Write content to a file, overwriting existing content")
-                .parameter("filePath", "string", "Absolute path to the file to write", true)
-                .parameter("content", "string", "Content to write to the file", true)
-                .build();
+        var schema = MAPPER.createObjectNode();
+        schema.put("type", "object");
+        var properties = schema.putObject("properties");
+        properties.putObject("filePath").put("type", "string");
+        properties.putObject("content").put("type", "string");
+        var required = schema.putArray("required");
+        required.add("filePath");
+        required.add("content");
+        return new ToolSpec("write", "Write content to a file, overwriting existing content", schema);
     }
 
     @Override
