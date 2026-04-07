@@ -36,6 +36,10 @@ public final class TuiCommand implements Callable<Integer> {
         // Register all builtin tools
         toolRegistry.register(new EchoTool());
         toolRegistry.register(new ClockTool());
+        toolRegistry.register(new ReadTool());
+        toolRegistry.register(new WriteTool());
+        toolRegistry.register(new EditTool());
+        toolRegistry.register(new BashTool());
 
         var session = new DefaultAgentSession(
                 actualSessionId,
