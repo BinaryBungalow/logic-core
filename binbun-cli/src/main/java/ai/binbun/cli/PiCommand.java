@@ -6,7 +6,8 @@ import picocli.CommandLine.Command;
         RunCommand.class,
         DeployCommand.class,
         DoctorCommand.class,
-        GatewayCommand.class
+        GatewayCommand.class,
+        TuiCommand.class
 })
 public final class PiCommand implements Runnable {
     @Override

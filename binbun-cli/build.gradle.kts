@@ -29,5 +29,7 @@ dependencies {
     implementation(project(":binbun-gateway-health"))
     implementation(project(":binbun-gateway-observability"))
     implementation(project(":binbun-gateway-recovery"))
+    implementation(project(":binbun-agent-core"))
     implementation("info.picocli:picocli:4.7.6")
+    implementation("ai.logicbean:logicbean-tui:0.13.0")
 }
